@@ -39,7 +39,7 @@ We had our project on HPC, so this is reflected with our BATCH scripts. Dependin
 #### 5. IMPORTANT: From scratch vs. from previous checkpoint
 The above steps are the same based on whether you would like to train from scratch versus from a previous checkpoint, except of course if it was from a previous checkpoint, the 'checkpoint_directory' string will contain not just your dictionary, but also your checkpoint model files. The only change is the second parameter when initializing the model, set from_scratch to True if starting from scratch, or set it to False if loading a checkpoint. If you are though, make sure to change the name of self.checkpoint_path within model.py under the __init__ function to be the name of the model checkpoint you would like to work with.
 
-To reproduce our results, download the folder [synthetic_one_hand]("/gonna/have/to/do/this"), where our model trained on synthetic data resides. This also contains the associated dictionary. An important thing to remember is to modify the `checkpoint` file inside this directory, changing the strings to your own directory.
+To reproduce our results, download the folder [synthetic_one_hand](https://drive.google.com/drive/folders/1GYONowjERCKLQqk3kIiTgEfYidiTqxzP?usp=drive_link), where our model trained on synthetic data resides. This also contains the associated dictionary. An important thing to remember is to modify the `checkpoint` file inside this directory, changing the strings to your own directory.
 
 ### Generate MIDI files
 Whenever MIDI files are being generated, the script to use is called 'generate_midis.py'. There are a few key things to carefully change and select before running the training though.
