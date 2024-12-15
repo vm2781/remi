@@ -10,7 +10,7 @@ class PopMusicTransformer(object):
     ########################################
     # initialize
     ########################################
-    def __init__(self, checkpoint, is_training=False):
+    def __init__(self, checkpoint, from_scratch=False, is_training=False):
         # load dictionary
         self.dictionary_path = '{}/dictionary.pkl'.format(checkpoint)
         self.event2word, self.word2event = pickle.load(open(self.dictionary_path, 'rb'))
@@ -32,13 +32,17 @@ class PopMusicTransformer(object):
             self.batch_size = 4
         else:
             self.batch_size = 1
-        self.checkpoint_path = '{}/model'.format(checkpoint)
+        self.checkpoint_path = '{}/model-039-2.316'.format(checkpoint)
+        self.from_scratch = from_scratch
         self.load_model()
 
     ########################################
     # load model
     ########################################
     def load_model(self):
+        tf.compat.v1.disable_eager_execution()
+
+
         # placeholders
         self.x = tf.compat.v1.placeholder(tf.int32, shape=[self.batch_size, None])
         self.y = tf.compat.v1.placeholder(tf.int32, shape=[self.batch_size, None])
@@ -92,11 +96,15 @@ class PopMusicTransformer(object):
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=decay_lr)
         self.train_op = optimizer.apply_gradients(grads_and_vars, self.global_step)
         # saver
-        self.saver = tf.compat.v1.train.Saver()
+        self.saver = tf.compat.v1.train.Saver(max_to_keep=40)
         config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
         config.gpu_options.allow_growth = True
         self.sess = tf.compat.v1.Session(config=config)
-        self.saver.restore(self.sess, self.checkpoint_path)
+        
+        if self.from_scratch:
+            self.sess.run(tf.compat.v1.global_variables_initializer())
+        else:
+            self.saver.restore(self.sess, self.checkpoint_path)
 
     ########################################
     # temperature sampling
@@ -136,6 +144,7 @@ class PopMusicTransformer(object):
     ########################################
     def generate(self, n_target_bar, temperature, topk, output_path, prompt=None):
         # if prompt, load it. Or, random start
+        print("Start file generation")
         if prompt:
             events = self.extract_events(prompt)
             words = [[self.event2word['{}_{}'.format(e.name, e.value)] for e in events]]
@@ -194,6 +203,7 @@ class PopMusicTransformer(object):
             # if bar event (only work for batch_size=1)
             if word == self.event2word['Bar_None']:
                 current_generated_bar += 1
+                print("---bar added")
             # re-new mem
             batch_m = _new_mem
         # write
@@ -209,11 +219,11 @@ class PopMusicTransformer(object):
                 word2event=self.word2event,
                 output_path=output_path,
                 prompt_path=None)
-
+        print("File written")
     ########################################
     # prepare training data
     ########################################
-    def prepare_data(self, midi_paths):
+    def prepare_data(self, midi_paths, output_file):
         # extract events
         all_events = []
         for path in midi_paths:
@@ -253,20 +263,26 @@ class PopMusicTransformer(object):
                 if len(data) == self.group_size:
                     segments.append(data)
         segments = np.array(segments)
+        
+        pickle.dump(segments, open(output_file, 'wb'))
         return segments
 
     ########################################
     # finetune
     ########################################
-    def finetune(self, training_data, output_checkpoint_folder):
+    def finetune(self, training_data, epochs, output_checkpoint_folder):
         # shuffle
-        index = np.arange(len(training_data))
-        np.random.shuffle(index)
-        training_data = training_data[index]
-        num_batches = len(training_data) // self.batch_size
+        self.group_size = 5
         st = time.time()
-        for e in range(200):
+        losses = []
+
+        for e in range(epochs):
             total_loss = []
+            training_data = training_data
+            index = np.arange(len(training_data))
+            np.random.shuffle(index)
+            training_data = training_data[index]
+            num_batches = len(training_data) // self.batch_size
             for i in range(num_batches):
                 segments = training_data[self.batch_size*i:self.batch_size*(i+1)]
                 batch_m = [np.zeros((self.mem_len, self.batch_size, self.d_model), dtype=np.float32) for _ in range(self.n_layer)]
@@ -282,11 +298,11 @@ class PopMusicTransformer(object):
                     batch_m = new_mem_
                     total_loss.append(loss_)
                     print('>>> Epoch: {}, Step: {}, Loss: {:.5f}, Time: {:.2f}'.format(e, gs_, loss_, time.time()-st))
+                    losses.append(loss_)
             self.saver.save(self.sess, '{}/model-{:03d}-{:.3f}'.format(output_checkpoint_folder, e, np.mean(total_loss)))
-            # stop
-            if np.mean(total_loss) <= 0.1:
-                break
-
+            
+        losses_file = '{}/losses_synthetic_data.pkl'.format(output_checkpoint_folder)
+        pickle.dump(losses, open(losses_file, 'wb'))
     ########################################
     # close
     ########################################

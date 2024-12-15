@@ -1,94 +1,61 @@
-# REMI
-Authors: [Yu-Siang Huang](https://remyhuang.github.io/), [Yi-Hsuan Yang](http://mac.citi.sinica.edu.tw/~yang/)
+# FINAL PROJECT
+### Jaron Cui and Varshan Muhunthan
 
-[**Paper (arXiv)**](https://arxiv.org/abs/2002.00212) | [**Blog**](https://ailabs.tw/human-interaction/pop-music-transformer/) | [**Audio demo (Google Drive)**](https://drive.google.com/open?id=1LzPBjHPip4S0CBOLquk5CNapvXSfys54) | [**Online interactive demo**](https://vibertthio.com/transformer/)
+## Goal:
+Train a model that can understand and generate good quality music
 
-REMI, which stands for `REvamped MIDI-derived events`, is a new event representation we propose for converting MIDI scores into text-like discrete tokens.  Compared to the MIDI-like event representation adopted in exising Transformer-based music composition models, REMI provides sequence models a metrical context for modeling the rhythmic patterns of music. Using REMI as the event representation, we train a Transformer-XL model to generate minute-long Pop piano music with expressive, coherent and clear structure of rhythm and harmony, without needing any post-processing to refine the result. The model also provides controllability of local tempo changes and chord progression.
+## Model from:
+https://github.com/YatingMusic/remi
 
-## Citation
-```
-@inproceedings{10.1145/3394171.3413671,
-  author = {Huang, Yu-Siang and Yang, Yi-Hsuan},
-  title = {Pop Music Transformer: Beat-Based Modeling and Generation of Expressive Pop Piano Compositions},
-  year = {2020},
-  isbn = {9781450379885},
-  publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
-  url = {https://doi.org/10.1145/3394171.3413671},
-  doi = {10.1145/3394171.3413671},
-  pages = {1180–1188},
-  numpages = {9},
-  location = {Seattle, WA, USA},
-  series = {MM '20}
-}
-```
+## Dependencies
+1. python
+2. tensorflow
+3. numpy
+4. pretty_midi
+5. miditoolkit
+6. music21
+## Training Model
 
-## Getting Started
-### Install Dependencies
-* python 3.6 (recommend using [Anaconda](https://www.anaconda.com/distribution/))
-* tensorflow-gpu 1.14.0 (`pip install tensorflow-gpu==1.14.0`)
-* [miditoolkit](https://github.com/YatingMusic/miditoolkit) (`pip install miditoolkit`)
+Whenever a model is being trained, the script to use is called 'train_model.py'. There are a few key things to carefully change and select before running the training though.
 
-### Download Pre-trained Checkpoints
-We provide two pre-trained checkpoints for generating samples.
-* `REMI-tempo-checkpoint` [(428 MB)](https://drive.google.com/open?id=1gxuTSkF51NP04JZgTE46Pg4KQsbHQKGo)
-* `REMI-tempo-chord-checkpoint` [(429 MB)](https://drive.google.com/open?id=1nAKjaeahlzpVAX0F9wjQEG_hL4UosSbo)
+#### 1. Create dictionary
+A dictionary containing the different events of your training data must be created and passed into the model before training. To create that, run the script 'create_dict.py', making sure to change the values of the directory containing the training midi files, as well as the output pkl file that will store the dictionary. 
 
-### Obtain the MIDI Data
-We provide the MIDI files including local tempo changes and estimated chord. [(5 MB)](https://drive.google.com/open?id=1JUDHGrVYGyHtjkfI2vgR1xb2oU8unlI3)
-* `data/train`: 775 files used for training models
-* `data/evaluation`: 100 files (prompts) used for the continuation experiments
+#### 2. Create an empty directory for where your model checkpoints.
+Be sure to place it in a place that works well for your project and your goals. After you have that, move the dictionary you created above to this directory. 
 
-## Generate Samples
-See `main.py` as an example:
-```python
-from model import PopMusicTransformer
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+#### 3. Modify train_model.py
+The first thing to check is the "checkpoint_directory" parameter when the model is first instantiated. Make sure it is the directory of the empty directory you made earlier for where the model checkpoints will go. The model will load in your dictionary from this folder. 
 
-def main():
-    # declare model
-    model = PopMusicTransformer(
-        checkpoint='REMI-tempo-checkpoint',
-        is_training=False)
-        
-    # generate from scratch
-    model.generate(
-        n_target_bar=16,
-        temperature=1.2,
-        topk=5,
-        output_path='./result/from_scratch.midi',
-        prompt=None)
-        
-    # generate continuation
-    model.generate(
-        n_target_bar=16,
-        temperature=1.2,
-        topk=5,
-        output_path='./result/continuation.midi',
-        prompt='./data/evaluation/000.midi')
-        
-    # close model
-    model.close()
+Next, modify the field 'folder_path' to point to where the training midi data lies. These midi files are processed into events based on your dictionary with the function model.prepare_data, which will create a numpy vector of tokenized data for input. Note the second parameter that allows you to save this tokenized data as a pkl file for debugging purposes.
 
-if __name__ == '__main__':
-    main()
-```
+Finally, modify model.finetune appropriately by selecting the number of epochs you want to train.
 
-## Convert MIDI to REMI
-You can find out how to convert the MIDI messages into REMI events in the `midi2remi.ipynb`.
+#### 4. Submit job
+We had our project on HPC, so this is reflected with our BATCH scripts. Depending on your system, either you can use a batch script similar to ours, or you can just run 'python train_model.py'
 
-## FAQ
-#### 1. How to synthesize the audio files (e.g., mp3)?
-We strongly recommend using DAW (e.g., Logic Pro) to open/play the generated MIDI files. Or, you can use [FluidSynth](https://github.com/FluidSynth/fluidsynth) with a [SoundFont](https://sites.google.com/site/soundfonts4u/). However, it may not be able to correctly handle the tempo changes (see [fluidsynth/issues/141](https://github.com/FluidSynth/fluidsynth/issues/141)).
+#### 5. IMPORTANT: From scratch vs. from previous checkpoint
+The above steps are the same based on whether you would like to train from scratch versus from a previous checkpoint, except of course if it was from a previous checkpoint, the 'checkpoint_directory' string will contain not just your dictionary, but also your checkpoint model files. The only change is the second parameter when initializing the model, set from_scratch to True if starting from scratch, or set it to False if loading a checkpoint. If you are though, make sure to change the name of self.checkpoint_path within model.py under the __init__ function to be the name of the model checkpoint you would like to work with.
 
-#### 2. What is the function of the inputs "temperature" and "topk"?
-It is the temperature-controlled stochastic sampling methods are used for generating text from a trained language model. You can find out more details in the reference paper [CTRL: 4.1 Sampling](https://einstein.ai/presentations/ctrl.pdf).
-> It is worth noting that the sampling method used for generation is very critical to the quality of the output, which is a research topic worthy of further exploration. 
+### Generate MIDI files
+Whenever MIDI files are being generated, the script to use is called 'generate_midis.py'. There are a few key things to carefully change and select before running the training though.
 
-#### 3. How to finetune with my personal MIDI data?
-Please see [issue/Training on custom MIDI corpus](https://github.com/YatingMusic/remi/issues/2)
+#### 1. Create empty output directory
+A dictionary that will contain the generated files must be created in an appropriate location based on what you would like.
 
-## Acknowledgement
-- The content of `modules.py` comes from the [kimiyoung/transformer-xl](https://github.com/kimiyoung/transformer-xl) repository.
-- Thanks [@vibertthio](https://github.com/vibertthio) for the awesome online interactive demo.
+#### 2. Modify generate_midis.py
+Set the 'checkpoint_dir' variable to the path of the model that you would like to load in for generating data. Notice how 'from_scratch' is clearly set to false now, and it will be expecting a model loaded in. Output from an uninitialized model doesn't do good. 
+
+Set the 'number_of_files' variable for how many files you would like to see generated. 
+
+Change the 'output_path' string variable to be wherever the generated MIDI files are supposed to go, the same directory as you created in step 1. 
+
+#### 3. Submit job
+Again, we had our project on HPC, so this is reflected with our BATCH scripts. Depending on your system, either you can use a batch script similar to ours, or you can just run 'python generate_midis.py'
+
+
+### Evaluate model on heuristics
+From: https://ieeexplore.ieee.org/document/9413310
+
+The script to use is 'heuristics.py'. The only thing that needs to be modified before it can be ran is the variable 'dir_path', representing the directory of MIDI files you want to find heuristic scores on. Once set, the directory can be now evaluated by merely calling 'python heuristics.py' 
+
