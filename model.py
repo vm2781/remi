@@ -32,7 +32,7 @@ class PopMusicTransformer(object):
             self.batch_size = 4
         else:
             self.batch_size = 1
-        self.checkpoint_path = '{}/model-039-2.316'.format(checkpoint)
+        self.checkpoint_path = '{}/model'.format(checkpoint)
         self.from_scratch = from_scratch
         self.load_model()
 
