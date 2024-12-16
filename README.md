@@ -23,23 +23,23 @@ A dictionary containing the different events of your training data must be creat
 
 Our project of course is around music generation, and we would recommend you using our scripts in our partner repo to generate a folder of midi files to train on. Instructions for doing that can be found in that repo's README. However, for simplicity's sake, some sample midi files for quick testing can be found in the directory `sample_data`. These files are real music though, so [downloading generated] music and training on this would reproduce results.  
 
-#### 2. Create an empty directory for where your model checkpoints.
+#### 2. Create an empty directory for where your model checkpoints will go.
 Be sure to place it in a place that works well for your project and your goals. After you have that, move the dictionary you created above to this directory. 
 
 #### 3. Modify train_model.py
-The first thing to check is the `checkpoint_directory` parameter when the model is first instantiated. Make sure it is the directory of the empty directory you made earlier for where the model checkpoints will go. The model will load in your dictionary from this folder. 
+The first thing to check is the `checkpoint_directory` parameter when the model is first instantiated. Make sure it is the directory you just made containing the dictionary.pkl file. The model will load in your dictionary from this folder, and checkpoints for your trained model will go into here as well. 
 
-Next, modify the field 'folder_path' to point to where the training midi data lies. These midi files are processed into events based on your dictionary with the function model.prepare_data, which will create a numpy vector of tokenized data for input. Note the second parameter that allows you to save this tokenized data as a pkl file for debugging purposes.
+Next, modify the field `folder_path` to point to where the training midi data lies. These midi files are processed into events based on your dictionary with the function `model.prepare_data`, which will create a numpy vector of tokenized data for input. Note the second parameter that allows you to save this tokenized data as a .pkl file for debugging purposes.
 
-Finally, modify model.finetune appropriately by selecting the number of epochs you want to train.
+Finally, modify the parameter `epochs` to train for however long you wish. For reference, our models were trained for 40 epochs, which took around 7 hours.
 
 #### 4. Submit job
 We had our project on HPC, so training the model had us submitting jobs with BATCH scripts. Depending on your system, either you can use a batch script, or you can just run `python train_model.py`
 
 #### 5. IMPORTANT: From scratch vs. from previous checkpoint
-The above steps are the same based on whether you would like to train from scratch versus from a previous checkpoint, except of course if it was from a previous checkpoint, the 'checkpoint_directory' string will contain not just your dictionary, but also your checkpoint model files. The only change is the second parameter when initializing the model, set from_scratch to True if starting from scratch, or set it to False if loading a checkpoint. If you are though, make sure to change the name of self.checkpoint_path within model.py under the __init__ function to be the name of the model checkpoint you would like to work with.
+The above steps are almost exactly the same based on whether you would like to train from scratch versus from a previous checkpoint. One difference is if you would like to train from a previous checkpoint, the `checkpoint_directory` string should contain not just your dictionary, but also your checkpoint model files being loaded in. The only change in the `train_model.py` script is the second parameter when initializing the model, set `from_scratch` to `True` if starting from scratch, or set it to `False` if loading a checkpoint.
 
-To reproduce our results, download the folder [synthetic_one_hand](https://drive.google.com/drive/folders/1GYONowjERCKLQqk3kIiTgEfYidiTqxzP?usp=drive_link), where our model trained on synthetic data resides. This also contains the associated dictionary. An important thing to remember is to modify the `checkpoint` file inside this directory, changing the strings to your own directory.
+To reproduce our results, download the folder [synthetic_one_hand](https://drive.google.com/drive/folders/1GYONowjERCKLQqk3kIiTgEfYidiTqxzP?usp=drive_link), where our model trained on synthetic data resembling single hand piano music resides. This also contains its associated dictionary.
 
 ### Generate MIDI files
 Whenever MIDI files are being generated, the script to use is called `generate_midis.py`. There are a few key things to carefully change and select before running the training though.
