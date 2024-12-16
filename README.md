@@ -1,8 +1,9 @@
-# IDLS Final Project
+# IDLS Final Project - Music Generation and Evaluation
 ### Jaron Cui and Varshan Muhunthan
 
 ## Goal:
-Train a model that can understand and generate good quality music
+The goal of this project is to generate high quality music, accompanied by a MIDI generator for synthesizing training data. The code for that
+is in another repo that is referred to within the README below as the [partner repo](https://github.com/jaron-cui/midi-generator). 
 
 ## Model from:
 This model's architecture and tokenizer were from [YatingMusic](https://github.com/YatingMusic/remi).
