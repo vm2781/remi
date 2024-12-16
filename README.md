@@ -2,8 +2,9 @@
 ### Jaron Cui and Varshan Muhunthan
 
 ## Goal:
-The goal of this project is to generate high quality music, accompanied by a MIDI generator for synthesizing training data. The code for that
-is in another repo that is referred to within the README below as the [partner repo](https://github.com/jaron-cui/midi-generator). 
+The goal of this project is to generate high quality music, accompanied by a MIDI generator for synthesizing training data. This repo contains the code for training/loading a model on MIDI files (either from our MIDI generator or from regular MIDI music data), having the trained model generate new music, then evaluating your trained model on heuristics described in a paper (see end of file).
+
+The code containing the actual generator is in another repo that is referred to within the README below as the [partner repo](https://github.com/jaron-cui/midi-generator). 
 
 ## Model from:
 This model's architecture and tokenizer were from [YatingMusic](https://github.com/YatingMusic/remi).
