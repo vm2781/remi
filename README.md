@@ -41,7 +41,7 @@ We had our project on HPC, so training the model had us submitting jobs with BAT
 #### 5. IMPORTANT: From scratch vs. from previous checkpoint
 The above steps are almost exactly the same based on whether you would like to train from scratch versus from a previous checkpoint. One difference is if you would like to train from a previous checkpoint, the `checkpoint_directory` string should contain not just your dictionary, but also your checkpoint model files being loaded in. The only change in the `train_model.py` script is the second parameter when initializing the model, set `from_scratch` to `True` if starting from scratch, or set it to `False` if loading a checkpoint.
 
-To reproduce our results, download the folder [synthetic_one_hand](https://drive.google.com/drive/folders/1GYONowjERCKLQqk3kIiTgEfYidiTqxzP?usp=drive_link), where our model trained on synthetic data resembling single hand piano music resides. This also contains its associated dictionary.
+To reproduce our results, download the folder [synthetic_one_hand](https://drive.google.com/drive/folders/1GYONowjERCKLQqk3kIiTgEfYidiTqxzP?usp=drive_link) or [synthetic_two_hand](https://drive.google.com/drive/folders/1Xs1LJrH9oSst_K__pXWvaZL5qcuBYT0f?usp=drive_link), where our models trained on synthetic data resembling single hand piano music resides. This also contains its associated dictionary.
 
 ### Generate MIDI files
 Whenever MIDI files are being generated, the script to use is called `generate_midis.py`. There are a few key things to carefully change and select before running the training though.
@@ -55,6 +55,12 @@ Set the `checkpoint_dir` variable to the path of the model that you would like t
 Set the `number_of_files` variable for how many files you would like to see generated. 
 
 Change the `output_path` string variable to be wherever the generated MIDI files are supposed to go, the same directory as you created in step 1. 
+
+Optional Parameters:
+1. `n_target_bar` = number of bars of music you want in each generated song
+2. `temperature` = increasing this values increases randomness of notes generated
+3. `topk` = increasing this value increases number of notes considered
+4. `prompt` = file directory path string of song you want to extend on top of, `None` if you want to generate song completely from scratch
 
 #### 3. Submit job
 Again, we had our project on HPC, so training the model had us submitting jobs with BATCH scripts. Depending on your system, either you can use a batch script, or you can just run `python train_model.py`. It does take a lot of time to generate music, so utilizing a GPU is advised here.
