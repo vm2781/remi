@@ -7,7 +7,7 @@ import numpy as np
 def main():
 
     # initialize model loaded in from the following checkpoint
-    checkpoint_dir = '/path/to/checkpoint/'
+    checkpoint_dir = '/path/to/checkpoint'
     model = PopMusicTransformer(
         checkpoint=checkpoint_dir,
         from_scratch=False,
