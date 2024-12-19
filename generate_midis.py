@@ -7,7 +7,7 @@ import numpy as np
 def main():
 
     # initialize model loaded in from the following checkpoint
-    checkpoint_dir = '/scratch/vm2781/final-midi/remi/tuned_model_two_hands_2'
+    checkpoint_dir = '/path/to/checkpoint/'
     model = PopMusicTransformer(
         checkpoint=checkpoint_dir,
         from_scratch=False,
